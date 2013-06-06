@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="module_ideavim" default="compile.module.ideavim">
+  <dirname property="module.ideavim.basedir" file="${ant.file.module_ideavim}"/>
+  
+  <property name="module.jdk.home.ideavim" value="${project.jdk.home}"/>
+  <property name="module.jdk.bin.ideavim" value="${project.jdk.bin}"/>
+  <property name="module.jdk.classpath.ideavim" value="${project.jdk.classpath}"/>
+  
+  <property name="compiler.args.ideavim" value="${compiler.args}"/>
+  
+  <property name="ideavim.output.dir" value="${module.ideavim.basedir}/out/production/ideavim"/>
+  <property name="ideavim.testoutput.dir" value="${module.ideavim.basedir}/out/test/ideavim"/>
+  
+  <path id="ideavim.module.bootclasspath">
+    <!-- Paths to be included in compilation bootclasspath -->
+  </path>
+  
+  <path id="ideavim.module.production.classpath">
+    <path refid="${module.jdk.classpath.ideavim}"/>
+  </path>
+  
+  <path id="ideavim.runtime.production.module.classpath">
+    <pathelement location="${ideavim.output.dir}"/>
+  </path>
+  
+  <path id="ideavim.module.classpath">
+    <path refid="${module.jdk.classpath.ideavim}"/>
+    <pathelement location="${ideavim.output.dir}"/>
+  </path>
+  
+  <path id="ideavim.runtime.module.classpath">
+    <pathelement location="${ideavim.testoutput.dir}"/>
+    <pathelement location="${ideavim.output.dir}"/>
+  </path>
+  
+  
+  <patternset id="excluded.from.module.ideavim">
+    <patternset refid="ignored.files"/>
+  </patternset>
+  
+  <patternset id="excluded.from.compilation.ideavim">
+    <patternset refid="excluded.from.module.ideavim"/>
+  </patternset>
+  
+  <path id="ideavim.module.sourcepath">
+    <dirset dir="${module.ideavim.basedir}">
+      <include name="src"/>
+      <include name="resources"/>
+    </dirset>
+  </path>
+  
+  <path id="ideavim.module.test.sourcepath">
+    <dirset dir="${module.ideavim.basedir}">
+      <include name="test"/>
+    </dirset>
+  </path>
+  
+  
+  <target name="compile.module.ideavim" depends="compile.module.ideavim.production,compile.module.ideavim.tests" description="Compile module ideavim"/>
+  
+  <target name="compile.module.ideavim.production" depends="register.custom.compilers" description="Compile module ideavim; production classes">
+    <mkdir dir="${ideavim.output.dir}"/>
+    <javac2 destdir="${ideavim.output.dir}" debug="${compiler.debug}" nowarn="${compiler.generate.no.warnings}" memorymaximumsize="${compiler.max.memory}" fork="true" executable="${module.jdk.bin.ideavim}/javac">
+      <compilerarg line="${compiler.args.ideavim}"/>
+      <bootclasspath refid="ideavim.module.bootclasspath"/>
+      <classpath refid="ideavim.module.production.classpath"/>
+      <src refid="ideavim.module.sourcepath"/>
+      <patternset refid="excluded.from.compilation.ideavim"/>
+    </javac2>
+    
+    <copy todir="${ideavim.output.dir}">
+      <fileset dir="${module.ideavim.basedir}/src">
+        <patternset refid="compiler.resources"/>
+        <type type="file"/>
+      </fileset>
+      <fileset dir="${module.ideavim.basedir}/resources">
+        <patternset refid="compiler.resources"/>
+        <type type="file"/>
+      </fileset>
+    </copy>
+  </target>
+  
+  <target name="compile.module.ideavim.tests" depends="register.custom.compilers,compile.module.ideavim.production" description="compile module ideavim; test classes" unless="skip.tests">
+    <mkdir dir="${ideavim.testoutput.dir}"/>
+    <javac2 destdir="${ideavim.testoutput.dir}" debug="${compiler.debug}" nowarn="${compiler.generate.no.warnings}" memorymaximumsize="${compiler.max.memory}" fork="true" executable="${module.jdk.bin.ideavim}/javac">
+      <compilerarg line="${compiler.args.ideavim}"/>
+      <bootclasspath refid="ideavim.module.bootclasspath"/>
+      <classpath refid="ideavim.module.classpath"/>
+      <src refid="ideavim.module.test.sourcepath"/>
+      <patternset refid="excluded.from.compilation.ideavim"/>
+    </javac2>
+    
+    <copy todir="${ideavim.testoutput.dir}">
+      <fileset dir="${module.ideavim.basedir}/test">
+        <patternset refid="compiler.resources"/>
+        <type type="file"/>
+      </fileset>
+    </copy>
+  </target>
+  
+  <target name="clean.module.ideavim" description="cleanup module">
+    <delete dir="${ideavim.output.dir}"/>
+    <delete dir="${ideavim.testoutput.dir}"/>
+  </target>
+  
+  <property name="ideavim.plugin.path.jar" value="${module.ideavim.basedir}/ideavim.jar"/>
+  
+  <!-- Build archive for plugin 'ideavim' -->
+  <target name="plugin.build.jar.ideavim" depends="compile.module.ideavim" description="Build plugin archive for module &#39;ideavim&#39;">
+    <jar destfile="${ideavim.plugin.path.jar}" duplicate="preserve">
+      <zipfileset dir="${module.ideavim.basedir}/out/production/ideavim"/>
+      <zipfileset file="${module.ideavim.basedir}/resources/META-INF/plugin.xml" prefix="META-INF"/>
+      <manifest>
+        <attribute name="Created-By" value="IntelliJ IDEA"/>
+        <attribute name="Manifest-Version" value="1.0"/>
+      </manifest>
+    </jar>
+  </target>
+</project>
